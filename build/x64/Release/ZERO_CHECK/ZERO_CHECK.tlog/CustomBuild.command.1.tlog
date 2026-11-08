@@ -1,0 +1,10 @@
+^D:\PROJECTS\COWS-AND-BULLS\BUILD\CMAKEFILES\CD0991250526C47EE3337B7B7AE1FFD2\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/Projects/Cows-and-Bulls -BD:/Projects/Cows-and-Bulls/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/Projects/Cows-and-Bulls/build/BullsAndCows.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

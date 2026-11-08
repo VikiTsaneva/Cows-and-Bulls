@@ -9,5 +9,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(bulls_and_cows main.cpp)
 
 if (WIN32)
+    target_compile_options(bulls_and_cows PRIVATE /utf-8)
     target_link_libraries(bulls_and_cows PRIVATE ws2_32)
 endif()

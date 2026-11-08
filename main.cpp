@@ -134,7 +134,7 @@ void playSinglePlayer() {
         int bulls = 0, cows = 0;
         getBullsAndCows(secret, guess, bulls, cows);
 
-        std::cout << "Результат: " << bulls << " Бика, " << cows << " Крави\n";
+        std::cout << "Резултат: " << bulls << " бика, " << cows << " крави\n";
 
         if (bulls == 4) {
             std::cout << "\nЧестито! Познахте числото " << secret << " от " << attempts << " опита!\n";
@@ -143,7 +143,7 @@ void playSinglePlayer() {
     }
 }
 
-// Режим 2: Мрежова игра (LAN / P2P)
+// Режим 2: Мрежова игра в локална мрежа
 void playMultiplayer() {
     if (!initializeSockets()) {
         std::cout << "Грешка при инициализация на сокет библиотеката.\n";
@@ -152,8 +152,8 @@ void playMultiplayer() {
 
     int mode;
     std::cout << "\n=== МРЕЖОВА ИГРА ===\n";
-    std::cout << "1. Бъди Host (Създай игра)\n";
-    std::cout << "2. Бъди Client (Свържи се към игра)\n";
+    std::cout << "1. Създай игра\n";
+    std::cout << "2. Свържи се към игра\n";
     std::cout << "Избор: ";
     std::cin >> mode;
 
@@ -163,7 +163,7 @@ void playMultiplayer() {
     if (isHost) {
         SocketType listenSock = socket(AF_INET, SOCK_STREAM, 0);
         if (listenSock == INVALID_SOCKET_VALUE) {
-            std::cout << "Грешка при създаване на listening socket.\n";
+            std::cout << "Грешка при създаване на сокет за връзки.\n";
             cleanupSockets();
             return;
         }
@@ -174,31 +174,31 @@ void playMultiplayer() {
         serverAddr.sin_port = htons(PORT);
 
         if (bind(listenSock, reinterpret_cast<sockaddr*>(&serverAddr), sizeof(serverAddr)) == SOCKET_ERROR_VALUE) {
-            std::cout << "Грешка при bind() на socket-а.\n";
+            std::cout << "Грешка при свързване на сокета с мрежовия адрес.\n";
             closeSocket(listenSock);
             cleanupSockets();
             return;
         }
 
         if (listen(listenSock, 1) == SOCKET_ERROR_VALUE) {
-            std::cout << "Грешка при listen() на socket-а.\n";
+            std::cout << "Грешка при настройване на сокета за входящи връзки.\n";
             closeSocket(listenSock);
             cleanupSockets();
             return;
         }
 
-        std::cout << "Очакване на втори играч да се свърже на порт " << PORT << "...\n";
+        std::cout << "Очакване на втори играч на порт " << PORT << "...\n";
         sock = accept(listenSock, nullptr, nullptr);
         std::cout << "Играчът се свърза!\n";
         closeSocket(listenSock);
     } else {
         std::string ipInput;
-        std::cout << "Въведете IP адреса на Host-а (за същия компютър въведете 127.0.0.1): ";
+        std::cout << "Въведете мрежовия адрес на играча, създал играта (за същия компютър въведете 127.0.0.1): ";
         std::cin >> ipInput;
 
         sock = socket(AF_INET, SOCK_STREAM, 0);
         if (sock == INVALID_SOCKET_VALUE) {
-            std::cout << "Грешка при създаване на socket.\n";
+            std::cout << "Грешка при създаване на мрежова връзка.\n";
             cleanupSockets();
             return;
         }
@@ -209,12 +209,12 @@ void playMultiplayer() {
         serverAddr.sin_addr.s_addr = inet_addr(ipInput.c_str());
 
         if (connect(sock, reinterpret_cast<sockaddr*>(&serverAddr), sizeof(serverAddr)) == SOCKET_ERROR_VALUE) {
-            std::cout << "Грешка при свързването към " << ipInput << "\n";
+            std::cout << "Грешка при свързване с " << ipInput << "\n";
             closeSocket(sock);
             cleanupSockets();
             return;
         }
-        std::cout << "Успешно свързване към играта!\n";
+        std::cout << "Успешно свързване с играта!\n";
     }
 
     std::string mySecret;
@@ -224,7 +224,7 @@ void playMultiplayer() {
     } while (!isValidGuess(mySecret));
 
     std::cout << "\nИграта започва!\n";
-    bool myTurn = isHost; // Host-ът започва пръв
+    bool myTurn = isHost; // Играчът, създал играта, започва пръв
     char buffer[BUFFER_SIZE];
 
     while (true) {
@@ -241,7 +241,12 @@ void playMultiplayer() {
             if (bytesReceived <= 0) break;
             buffer[bytesReceived] = '\0';
 
-            std::cout << "Отговор от опонента: " << buffer << "\n";
+            std::string opponentResponse = buffer;
+            std::size_t bullsMarker = opponentResponse.find('B');
+            std::size_t cowsMarker = opponentResponse.find('C');
+            if (bullsMarker != std::string::npos) opponentResponse.replace(bullsMarker, 1, "Б");
+            if (cowsMarker != std::string::npos) opponentResponse.replace(cowsMarker, 1, "К");
+            std::cout << "Отговор от опонента: " << opponentResponse << "\n";
 
             if (std::string(buffer).find("4B") != std::string::npos) {
                 std::cout << "\nПОБЕДА! Вие познахте числото на опонента първи!\n";
@@ -278,11 +283,13 @@ void playMultiplayer() {
 
 int main() {
     srand(time(NULL));
+    SetConsoleCP(CP_UTF8);
+    SetConsoleOutputCP(CP_UTF8);
     int choice;
-    std::cout << "=== BULLS AND COWS ===" << std::endl;
-    std::cout << "1. Play against computer" << std::endl;
-    std::cout << "2. Two-player network mode" << std::endl;
-    std::cout << "Choice: " << std::flush;
+    std::cout << "=== БИКОВЕ И КРАВИ ===" << std::endl;
+    std::cout << "1. Игра срещу компютъра" << std::endl;
+    std::cout << "2. Игра с двама играчи в мрежа" << std::endl;
+    std::cout << "Избор: " << std::flush;
     std::cin >> choice;
 
     if (choice == 1) {
