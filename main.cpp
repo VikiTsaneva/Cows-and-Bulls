@@ -360,6 +360,7 @@ void playSinglePlayer() {
             break;
         }
     }
+    waitForEnter();
 }
 
 // Режим 2: Мрежова игра в локална мрежа
